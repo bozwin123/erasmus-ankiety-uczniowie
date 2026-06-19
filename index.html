@@ -394,7 +394,139 @@ const EWALUACJA = {
   ],
 };
 
-// PLACEHOLDER FOR RENDER CALLS (Tasks 3–5)
+// ── HELPERS ────────────────────────────────────────────────────────────────
+function avgScore(questions) {
+  const totals = questions.map(q =>
+    q.pct.reduce((sum, p, i) => sum + p * (i + 1), 0) / 100
+  );
+  return (totals.reduce((a, b) => a + b, 0) / totals.length).toFixed(2);
+}
+
+function renderStackedBar(canvasId, questions) {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  const labels = questions.map(q => q.label);
+  const datasets = SCORE_LABELS.map((lbl, i) => ({
+    label: lbl,
+    data: questions.map(q => q.pct[i]),
+    backgroundColor: SCORE_COLORS[i],
+    borderWidth: 0,
+    borderRadius: i === 0 ? { topLeft: 4, bottomLeft: 4 } : i === 4 ? { topRight: 4, bottomRight: 4 } : 0,
+  }));
+  new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.dataset.label}: ${ctx.parsed.x > 0 ? ctx.parsed.x.toFixed(1) + '%' : '0%'}`,
+          },
+        },
+      },
+      scales: {
+        x: { stacked: true, max: 100, ticks: { callback: v => v + '%' }, grid: { color: '#f0f0f0' } },
+        y: { stacked: true, ticks: { font: { size: 11 } } },
+      },
+    },
+  });
+}
+
+function renderDonut(canvasId, tak) {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Tak', 'Nie'],
+      datasets: [{ data: [tak, 100 - tak], backgroundColor: ['#2e7d32', '#e5e7eb'], borderWidth: 0 }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '72%',
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.parsed}%` } },
+      },
+    },
+  });
+}
+
+function scoreLegendHTML() {
+  return `<div class="score-legend">${SCORE_LABELS.map((l, i) =>
+    `<span><i style="background:${SCORE_COLORS[i]}"></i>${l}</span>`
+  ).join('')}</div>`;
+}
+
+function quotesHTML(openQ) {
+  return openQ.map(o => `
+    <div class="chart-card">
+      <h3>${o.q}</h3>
+      <div class="quotes">${o.answers.map(a => `<div class="quote">${a}</div>`).join('')}</div>
+    </div>`).join('');
+}
+
+// ── OVERVIEW TAB ──────────────────────────────────────────────────────────
+(function renderOverview() {
+  const allSurveys = [
+    ...SURVEYS,
+    { id: 'ewaluacja', title: 'Ankieta ewaluacyjna – Włochy', n: 15,
+      questions: [...EWALUACJA.partA.questions, ...EWALUACJA.partB.questions,
+                  ...EWALUACJA.partC.questions, ...EWALUACJA.partE.questions] }
+  ];
+
+  const cards = allSurveys.map(s => {
+    const avg = avgScore(s.questions);
+    return `<div class="kpi-card">
+      <div class="label">${s.title}</div>
+      <div class="value">${avg}</div>
+      <div class="unit">/ 5.00 &nbsp;·&nbsp; n = ${s.n}</div>
+    </div>`;
+  }).join('');
+
+  const overallData = allSurveys.map(s => parseFloat(avgScore(s.questions)));
+  const overallLabels = allSurveys.map(s => s.title);
+
+  document.getElementById('overview').innerHTML = `
+    <h2 style="font-size:1.2rem;margin-bottom:20px;color:var(--blue)">Wyniki wszystkich ankiet</h2>
+    <div class="kpi-row">${cards}</div>
+    <div class="chart-card">
+      <h3>Średnia ocena (skala 1–5) – porównanie ankiet</h3>
+      <div style="height:320px"><canvas id="overviewChart"></canvas></div>
+    </div>
+    <p style="font-size:0.8rem;color:var(--muted);margin-top:16px">
+      Projekt współfinansowany przez Unię Europejską ze środków Europejskiego Funduszu Społecznego Plus
+      w Programie Fundusze Europejskie dla Rozwoju Społecznego 2021–2027 na zasadach Programu Erasmus+.
+    </p>`;
+
+  new Chart(document.getElementById('overviewChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: overallLabels,
+      datasets: [{
+        label: 'Średnia ocena',
+        data: overallData,
+        backgroundColor: '#003DA5',
+        borderRadius: 6,
+      }],
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `Średnia: ${c.parsed.x.toFixed(2)} / 5.00` } } },
+      scales: {
+        x: { min: 4, max: 5, ticks: { stepSize: 0.2 }, grid: { color: '#f0f0f0' } },
+        y: { ticks: { font: { size: 11 } } },
+      },
+    },
+  });
+})();
+
+// PLACEHOLDER FOR TABS 1–6 AND TAB 7 (Tasks 4–5)
 </script>
 </body>
 </html>
