@@ -526,7 +526,48 @@ function quotesHTML(openQ) {
   });
 })();
 
-// PLACEHOLDER FOR TABS 1–6 AND TAB 7 (Tasks 4–5)
+// ── SURVEYS TABS 1–6 ──────────────────────────────────────────────────────
+SURVEYS.forEach(survey => {
+  const avg = avgScore(survey.questions);
+  const pct5 = survey.questions.reduce((sum, q) => sum + q.pct[4], 0) / survey.questions.length;
+  const chartId = `chart_${survey.id}`;
+  const barHeight = Math.max(220, survey.questions.length * 38);
+
+  let yesNoHTML = '';
+  if (survey.yesNo) {
+    const donutId = `donut_${survey.id}`;
+    yesNoHTML = `
+      <div class="chart-card">
+        <h3>${survey.yesNo.question}</h3>
+        <div class="donut-row">
+          <div>
+            <div class="donut-wrap"><canvas id="${donutId}"></canvas></div>
+            <div class="donut-label">Tak</div>
+          </div>
+          <div class="yesno-badge">✔ ${survey.yesNo.tak}% odpowiedziało <strong>TAK</strong></div>
+        </div>
+      </div>`;
+  }
+
+  document.getElementById(survey.id).innerHTML = `
+    <div class="kpi-row">
+      <div class="kpi-card"><div class="label">Liczba respondentów</div><div class="value">${survey.n}</div><div class="unit">osób</div></div>
+      <div class="kpi-card"><div class="label">Średnia ocena</div><div class="value">${avg}</div><div class="unit">/ 5.00</div></div>
+      <div class="kpi-card"><div class="label">Ocena „5" (bardzo dobrze)</div><div class="value">${pct5.toFixed(1)}%</div><div class="unit">udzielonych odpowiedzi</div></div>
+    </div>
+    <div class="chart-card">
+      <h3>${survey.title} – rozkład ocen (skala 1–5)</h3>
+      ${scoreLegendHTML()}
+      <div style="height:${barHeight}px"><canvas id="${chartId}"></canvas></div>
+    </div>
+    ${yesNoHTML}
+    ${quotesHTML(survey.openQ)}`;
+
+  renderStackedBar(chartId, survey.questions);
+  if (survey.yesNo) renderDonut(`donut_${survey.id}`, survey.yesNo.tak);
+});
+
+// PLACEHOLDER FOR TAB 7 (Task 5)
 </script>
 </body>
 </html>
