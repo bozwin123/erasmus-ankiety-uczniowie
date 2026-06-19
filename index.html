@@ -188,7 +188,213 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 const SCORE_COLORS = ['#d32f2f','#f57c00','#fbc02d','#689f38','#2e7d32'];
 const SCORE_LABELS = ['1 – niedostatecznie','2 – mało zad.','3 – dostatecznie','4 – dobrze','5 – bardzo dobrze'];
 
-// PLACEHOLDER FOR DATA + RENDER CALLS (Tasks 2–5)
+// ── SURVEY DATA ────────────────────────────────────────────────────────────
+// Each survey: { id, title, n, questions:[{label,pct:[p1,p2,p3,p4,p5]}], yesNo, openQ }
+// pct values are percentages (sum to ~100 per question)
+
+const SURVEYS = [
+  {
+    id: 'rekrutacja',
+    title: 'Procedura rekrutacyjna',
+    n: 24,
+    questions: [
+      { label: 'Wartość merytoryczna dokumentów rekrutacyjnych',      pct: [4.2,  0,   0,   8.3,  87.5] },
+      { label: 'Metody prowadzenia rekrutacji',                        pct: [0,    0,   4.2, 12.5, 83.3] },
+      { label: 'Jasność i przejrzystość zasad rekrutacji',             pct: [0,    0,   4.2, 8.3,  87.5] },
+      { label: 'Kontakt Komisji Rekrutacyjnej z kandydatami',          pct: [0,    0,   0,   4.2,  95.8] },
+      { label: 'Zachowanie zasady równości szans',                     pct: [0,    0,   4.2, 20.8, 75.0] },
+      { label: 'Zachowanie zasady niedyskryminacji',                   pct: [0,    0,   0,   8.3,  91.7] },
+      { label: 'Dostępność dokumentów rekrutacyjnych',                 pct: [0,    0,   0,   8.3,  91.7] },
+      { label: 'Jakość poinformowania o wynikach rekrutacji',          pct: [0,    0,   0,   4.2,  95.8] },
+      { label: 'Kompleksowość działań rekrutacyjnych',                 pct: [0,    0,   4.2, 8.3,  87.5] },
+      { label: 'Bezpieczeństwo danych w toku rekrutacji',              pct: [0,    0,   0,   4.2,  95.8] },
+    ],
+    yesNo: null,
+    openQ: [
+      { q: 'Najbardziej podobało mi się', answers: ['atmosfera','rozmowa kwalifikacyjna','ogólnie fajnie','wszystko mi się podobało','przemiła atmosfera','bardzo miłe zachowanie','rozmowa kwalifikacyjna','miła atmosfera i super koordynatorki','test pisemny','atmosfera panująca podczas rekrutacji','duch rywalizacji','angielski'] },
+      { q: 'Najbardziej nie podobało mi się', answers: ['nic','nic','niedostanie się'] },
+    ],
+  },
+  {
+    id: 'zespol',
+    title: 'Praca zespołu projektowego',
+    n: 15,
+    questions: [
+      { label: 'Jakość dokumentów przygotowanych przez zespół',  pct: [0, 0,   0,   0,   100 ] },
+      { label: 'Metody pracy zespołu projektowego',              pct: [0, 0,   0,   0,   100 ] },
+      { label: 'Jasność i przejrzystość zasad działania',        pct: [0, 0,   0,   0,   100 ] },
+      { label: 'Kontakt zespołu z uczestnikami',                 pct: [0, 0,   6.7, 6.7, 86.7] },
+      { label: 'Zachowanie zasady równości szans',               pct: [0, 0,   6.7, 0,   93.3] },
+      { label: 'Zachowanie zasady niedyskryminacji',             pct: [0, 0,   0,   6.7, 93.3] },
+      { label: 'Dostępność i bezpieczeństwo informacji',         pct: [0, 0,   0,   6.7, 93.3] },
+      { label: 'Zaangażowanie Partnera zagranicznego',           pct: [0, 6.7, 0,   0,   93.3] },
+      { label: 'Kompleksowość działań zespołu',                  pct: [0, 0,   0,   6.7, 93.3] },
+    ],
+    yesNo: null,
+    openQ: [
+      { q: 'Uwagi do pracy zespołu projektowego', answers: ['bardzo dobry kontakt'] },
+    ],
+  },
+  {
+    id: 'angielski',
+    title: 'Przygotowanie językowe – angielski (10h)',
+    n: 15,
+    questions: [
+      { label: 'Wartość merytoryczna zajęć',               pct: [0, 0, 0,   6.7, 93.3] },
+      { label: 'Metody prowadzenia zajęć',                 pct: [0, 0, 0,   0,   100 ] },
+      { label: 'Przygotowanie merytoryczne prowadzącego',  pct: [0, 0, 6.7, 0,   93.3] },
+      { label: 'Kontakt z uczestnikami zajęć',             pct: [0, 0, 0,   6.7, 93.3] },
+      { label: 'Jakość wykorzystywanych materiałów',       pct: [0, 0, 0,   0,   100 ] },
+      { label: 'Jakość przeprowadzonych zajęć',            pct: [0, 0, 0,   6.7, 93.3] },
+      { label: 'Skład merytoryczny dokumentów',            pct: [0, 0, 0,   6.7, 93.3] },
+      { label: 'Różnorodność metod dydaktycznych',         pct: [0, 0, 0,   0,   100 ] },
+      { label: 'Uniwersalność przekazywanych treści',      pct: [0, 0, 6.7, 0,   93.3] },
+      { label: 'Kompleksowość przeprowadzonych zajęć',     pct: [0, 0, 6.7, 0,   93.3] },
+      { label: 'Kompatybilność z celami projektu',         pct: [0, 0, 0,   6.7, 93.3] },
+    ],
+    yesNo: { tak: 100, question: 'Czy zajęcia pozytywnie wpłynęły na przygotowanie językowe?' },
+    openQ: [
+      { q: 'Najbardziej podobało mi się', answers: ['wszystko mi się podobało','zadania','dobrze wytłumaczone','inny sposób nauczania','organizacja','zadania','sposób przeprowadzania – materiały i zadania'] },
+      { q: 'Najbardziej nie podobało mi się', answers: ['nic'] },
+    ],
+  },
+  {
+    id: 'wloski',
+    title: 'Przygotowanie językowe – włoski (4h)',
+    n: 15,
+    questions: [
+      { label: 'Wartość merytoryczna zajęć',               pct: [0, 0,   0,    13.3, 86.7] },
+      { label: 'Metody prowadzenia zajęć',                 pct: [0, 0,   0,    6.7,  93.3] },
+      { label: 'Przygotowanie merytoryczne prowadzącego',  pct: [0, 0,   6.7,  0,    93.3] },
+      { label: 'Kontakt z uczestnikami zajęć',             pct: [0, 0,   0,    6.7,  93.3] },
+      { label: 'Jakość wykorzystywanych materiałów',       pct: [0, 0,   0,    6.7,  93.3] },
+      { label: 'Jakość przeprowadzonych zajęć',            pct: [0, 0,   0,    0,    100 ] },
+      { label: 'Skład merytoryczny dokumentów',            pct: [0, 0,   6.7,  0,    93.3] },
+      { label: 'Różnorodność metod dydaktycznych',         pct: [0, 0,   6.7,  0,    93.3] },
+      { label: 'Uniwersalność przekazywanych treści',      pct: [0, 0,   6.7,  6.7,  86.7] },
+      { label: 'Kompleksowość przeprowadzonych zajęć',     pct: [0, 6.7, 0,    6.7,  86.7] },
+      { label: 'Kompatybilność z celami projektu',         pct: [0, 0,   0,    6.7,  93.3] },
+    ],
+    yesNo: { tak: 100, question: 'Czy zajęcia pozytywnie wpłynęły na przygotowanie językowe?' },
+    openQ: [
+      { q: 'Najbardziej podobało mi się', answers: ['wszystko po włosku','uczenie po włosku','sposób przeprowadzenia','poznawanie nowych uczniów i nauka języka','integracja','krajobraz, język i kultura'] },
+      { q: 'Najbardziej nie podobało mi się', answers: ['nie ma takiej rzeczy','nic'] },
+    ],
+  },
+  {
+    id: 'organizacyjne',
+    title: 'Spotkania organizacyjne (2h)',
+    n: 15,
+    questions: [
+      { label: 'Wartość merytoryczna zajęć',               pct: [0, 0, 0,    0,    100 ] },
+      { label: 'Metody prowadzenia zajęć',                 pct: [0, 0, 0,    6.7,  93.3] },
+      { label: 'Przygotowanie merytoryczne prowadzącego',  pct: [0, 0, 0,    6.7,  93.3] },
+      { label: 'Kontakt z uczestnikami zajęć',             pct: [0, 0, 6.7,  6.7,  86.7] },
+      { label: 'Jakość wykorzystywanych materiałów',       pct: [0, 0, 0,    13.3, 86.7] },
+      { label: 'Jakość przeprowadzonych zajęć',            pct: [0, 0, 0,    6.7,  93.3] },
+      { label: 'Różnorodność metod dydaktycznych',         pct: [0, 0, 0,    6.7,  93.3] },
+      { label: 'Uniwersalność przekazywanych treści',      pct: [0, 0, 0,    6.7,  93.3] },
+      { label: 'Kompleksowość przeprowadzonych zajęć',     pct: [0, 0, 0,    13.3, 86.7] },
+      { label: 'Kompatybilność z celami projektu',         pct: [0, 0, 6.7,  0,    93.3] },
+    ],
+    yesNo: { tak: 100, question: 'Czy zajęcia pozytywnie wpłynęły na wiedzę o logistyce wyjazdu?' },
+    openQ: [
+      { q: 'Najbardziej podobało mi się', answers: ['jasny przekaz informacji','to jak prowadzone są zajęcia','wszystko'] },
+      { q: 'Najbardziej nie podobało mi się', answers: ['nic'] },
+    ],
+  },
+  {
+    id: 'kulturowe',
+    title: 'Spotkania kulturowe (2h)',
+    n: 15,
+    questions: [
+      { label: 'Wartość merytoryczna zajęć',               pct: [0, 0,   0,    0,    100 ] },
+      { label: 'Metody prowadzenia zajęć',                 pct: [0, 0,   6.7,  6.7,  86.7] },
+      { label: 'Przygotowanie merytoryczne prowadzącego',  pct: [0, 0,   0,    0,    100 ] },
+      { label: 'Kontakt z uczestnikami zajęć',             pct: [0, 0,   0,    6.7,  93.3] },
+      { label: 'Jakość wykorzystywanych materiałów',       pct: [0, 0,   0,    6.7,  93.3] },
+      { label: 'Jakość przeprowadzonych zajęć',            pct: [0, 0,   0,    6.7,  93.3] },
+      { label: 'Skład merytoryczny dokumentów',            pct: [0, 0,   0,    6.7,  93.3] },
+      { label: 'Różnorodność metod dydaktycznych',         pct: [0, 0,   6.7,  6.7,  86.7] },
+      { label: 'Uniwersalność przekazywanych treści',      pct: [0, 0,   0,    0,    100 ] },
+      { label: 'Kompleksowość przeprowadzonych zajęć',     pct: [0, 0,   0,    0,    100 ] },
+      { label: 'Kompatybilność z celami projektu',         pct: [0, 0,   0,    13.3, 86.7] },
+    ],
+    yesNo: { tak: 100, question: 'Czy zajęcia pozytywnie wpłynęły na przygotowanie kulturowe?' },
+    openQ: [
+      { q: 'Najbardziej podobało mi się', answers: ['kultura włoska','filmiki','materiały pokazane na zdjęciach','poznawanie nowych kultur','wszystko mi się podobało','szkoła'] },
+      { q: 'Najbardziej nie podobało mi się', answers: ['nic'] },
+    ],
+  },
+];
+
+const EWALUACJA = {
+  n: 15,
+  partA: {
+    title: 'Część A – Komunikacja w języku angielskim',
+    questions: [
+      { label: 'Lepsza umiejętność rozumienia ang. ze słuchu',     pct: [0, 0, 0,    26.7, 73.3] },
+      { label: 'Swobodne porozumiewanie się po angielsku',          pct: [0, 0, 6.7,  13.3, 80  ] },
+      { label: 'Pewność siebie w mówieniu po angielsku',            pct: [0, 0, 6.7,  6.7,  86.7] },
+      { label: 'Wzbogacenie słownictwa angielskiego',               pct: [0, 0, 13.3, 20,   66.7] },
+      { label: 'Motywacja do nauki angielskiego',                   pct: [0, 0, 0,    20,   80  ] },
+      { label: 'Szansa na lepszy wynik matury z ang.',              pct: [0, 0, 0,    6.7,  93.3] },
+      { label: 'Chęć do egzaminu certyfikacyjnego (FCE/CAE)',       pct: [0, 0, 20,   6.7,  73.3] },
+    ],
+  },
+  partB: {
+    title: 'Część B – Świadomość międzykulturowa',
+    questions: [
+      { label: 'Lepsza znajomość kultury Włoch',                    pct: [0, 0, 0,   0,    100 ] },
+      { label: 'Większa otwartość na kontakty z innymi',            pct: [0, 0, 0,   13.3, 86.7] },
+      { label: 'Efektywna współpraca w międzynar. zespole',         pct: [0, 0, 0,   26.7, 73.3] },
+      { label: 'Radzenie sobie w nowych sytuacjach',                pct: [0, 0, 6.7, 0,    93.3] },
+      { label: 'Lepsze rozumienie UE i jej możliwości',             pct: [0, 0, 6.7, 33.3, 60  ] },
+      { label: 'Wzmocnienie tolerancji kulturowej',                 pct: [0, 0, 6.7, 6.7,  86.7] },
+      { label: 'Chęć angażowania się w projekty międzynar.',        pct: [0, 0, 0,   26.7, 73.3] },
+    ],
+  },
+  partC: {
+    title: 'Część C – Organizacja i przebieg mobilności',
+    questions: [
+      { label: 'Dobre przygotowanie przez szkołę',      pct: [0, 0, 0,   13.3, 86.7] },
+      { label: 'Ciekawe i angażujące zajęcia',          pct: [0, 0, 6.7, 6.7,  86.7] },
+      { label: 'Poczucie bezpieczeństwa z opiekunami',  pct: [0, 0, 0,   0,    100 ] },
+      { label: 'Zakwaterowanie i wyżywienie',           pct: [0, 0, 6.7, 26.7, 66.7] },
+      { label: 'Dobrze zorganizowany program',          pct: [0, 0, 0,   6.7,  93.3] },
+      { label: 'Poleciłbym/-abym wyjazd innym',         pct: [0, 0, 0,   6.7,  93.3] },
+    ],
+  },
+  partE: {
+    title: 'Część E – Ogólna ocena mobilności',
+    questions: [
+      { label: 'Ogólna jakość mobilności',   pct: [0, 0, 0,   13.3, 86.7] },
+      { label: 'Własny rozwój językowy',     pct: [0, 0, 0,   13.3, 86.7] },
+      { label: 'Własny rozwój osobisty',     pct: [0, 0, 6.7, 20,   73.3] },
+      { label: 'Przygotowanie przez szkołę', pct: [0, 0, 0,   13.3, 86.7] },
+    ],
+  },
+  partF: {
+    title: 'Część F – Plany po powrocie',
+    labels: [
+      'Egzamin certyfikacyjny (FCE/CAE)',
+      'Rozszerzona matura z angielskiego',
+      'Szkolne koło językowe/debatanckie',
+      'Kolejny projekt Erasmus+ / międzynar.',
+      'Kontakty z uczniami za granicą',
+      'Nauka języka włoskiego',
+      'Wolontariat lub inicjatywy międzynar.',
+    ],
+    values: [40, 46.7, 16.7, 66.7, 26.7, 20, 20],
+  },
+  openQ: [
+    { q: 'Największa wartość wyjazdu', answers: ['nauka rozmowy','kontakt z ludźmi','wyjazd za granicę','poznawanie nowej kultury i nowych smaków','użycie angielskiego w życiu codziennym','nauka angielskiego i włoskiego','poznanie nowych ludzi'] },
+    { q: 'Co zmieniłbyś w programie?', answers: ['nic – było dobrze','więcej wycieczek','więcej czasu wolnego','hotel'] },
+    { q: 'Czego się obawiałeś, a okazało się inne?', answers: ['włoska mafia','że jedzenie mi nie posmakuje','że się nie dogadam','atmosfera we włoskiej szkole','problemy z porozumiewaniem się','myślałam że ludzie będą mniej otwarci'] },
+  ],
+};
+
+// PLACEHOLDER FOR RENDER CALLS (Tasks 3–5)
 </script>
 </body>
 </html>
