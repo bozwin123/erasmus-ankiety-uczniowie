@@ -567,7 +567,72 @@ SURVEYS.forEach(survey => {
   if (survey.yesNo) renderDonut(`donut_${survey.id}`, survey.yesNo.tak);
 });
 
-// PLACEHOLDER FOR TAB 7 (Task 5)
+// ── TAB 7 – ANKIETA EWALUACYJNA ───────────────────────────────────────────
+(function renderEwaluacja() {
+  const { partA, partB, partC, partE, partF, openQ, n } = EWALUACJA;
+
+  function partSection(part, idSuffix) {
+    const h = Math.max(180, part.questions.length * 38);
+    const cid = `eval_${idSuffix}`;
+    return `
+      <div class="chart-card">
+        <h3>${part.title}</h3>
+        ${scoreLegendHTML()}
+        <div style="height:${h}px"><canvas id="${cid}"></canvas></div>
+      </div>`;
+  }
+
+  const partFColors = ['#003DA5','#1565c0','#1976d2','#1e88e5','#42a5f5','#90caf9','#bbdefb'];
+
+  const allPartQs = [...partA.questions, ...partB.questions, ...partC.questions, ...partE.questions];
+  const allAvg = avgScore(allPartQs);
+
+  document.getElementById('ewaluacja').innerHTML = `
+    <div class="kpi-row">
+      <div class="kpi-card"><div class="label">Liczba respondentów</div><div class="value">${n}</div><div class="unit">uczniów po mobilności</div></div>
+      <div class="kpi-card"><div class="label">Średnia ocena (części A–E)</div><div class="value">${allAvg}</div><div class="unit">/ 5.00</div></div>
+    </div>
+    ${partSection(partA, 'A')}
+    ${partSection(partB, 'B')}
+    ${partSection(partC, 'C')}
+    ${partSection(partE, 'E')}
+    <div class="chart-card">
+      <h3>${partF.title}</h3>
+      <div style="height:260px"><canvas id="eval_F"></canvas></div>
+    </div>
+    ${quotesHTML(openQ)}`;
+
+  renderStackedBar('eval_A', partA.questions);
+  renderStackedBar('eval_B', partB.questions);
+  renderStackedBar('eval_C', partC.questions);
+  renderStackedBar('eval_E', partE.questions);
+
+  new Chart(document.getElementById('eval_F').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: partF.labels,
+      datasets: [{
+        label: '% uczniów',
+        data: partF.values,
+        backgroundColor: partFColors,
+        borderRadius: 6,
+      }],
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => `${c.parsed.x}% uczniów` } },
+      },
+      scales: {
+        x: { max: 100, ticks: { callback: v => v + '%' }, grid: { color: '#f0f0f0' } },
+        y: { ticks: { font: { size: 11 } } },
+      },
+    },
+  });
+})();
 </script>
 </body>
 </html>
