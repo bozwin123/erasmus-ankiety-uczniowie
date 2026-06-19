@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Erasmus+ Ankiety – Liceum w Dubience</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue: #003DA5;
+    --gold: #FFD700;
+    --bg: #f4f6fb;
+    --card: #ffffff;
+    --text: #1a1a2e;
+    --muted: #6b7280;
+    --c1: #d32f2f;
+    --c2: #f57c00;
+    --c3: #fbc02d;
+    --c4: #689f38;
+    --c5: #2e7d32;
+    --radius: 12px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); }
+
+  /* HEADER */
+  header {
+    background: var(--blue);
+    color: #fff;
+    padding: 24px 32px 20px;
+    border-bottom: 4px solid var(--gold);
+  }
+  header .eu-flag { font-size: 2rem; margin-bottom: 6px; }
+  header h1 { font-size: 1.4rem; font-weight: 700; line-height: 1.3; }
+  header .sub { font-size: 0.8rem; opacity: 0.75; margin-top: 4px; }
+
+  /* TAB BAR */
+  .tab-bar {
+    background: #fff;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .tab-bar::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    flex-shrink: 0;
+    padding: 14px 20px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--muted);
+    border-bottom: 3px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+    white-space: nowrap;
+  }
+  .tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+  .tab-btn:hover:not(.active) { color: var(--text); }
+
+  /* PANELS */
+  .tab-panel { display: none; padding: 32px 24px; max-width: 1100px; margin: 0 auto; }
+  .tab-panel.active { display: block; }
+
+  /* KPI ROW */
+  .kpi-row { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 32px; }
+  .kpi-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    flex: 1 1 160px;
+    min-width: 140px;
+  }
+  .kpi-card .label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .kpi-card .value { font-size: 2rem; font-weight: 700; color: var(--blue); }
+  .kpi-card .unit { font-size: 0.85rem; color: var(--muted); margin-top: 2px; }
+
+  /* CHART CARDS */
+  .chart-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .chart-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 16px; color: var(--text); }
+  .chart-card h4 { font-size: 0.85rem; font-weight: 600; margin-bottom: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* SCORE LEGEND */
+  .score-legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; font-size: 0.75rem; }
+  .score-legend span { display: flex; align-items: center; gap: 5px; }
+  .score-legend i { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
+
+  /* DONUT ROW */
+  .donut-row { display: flex; flex-wrap: wrap; gap: 24px; align-items: center; }
+  .donut-wrap { position: relative; width: 120px; height: 120px; }
+  .donut-label { text-align: center; font-size: 0.8rem; color: var(--muted); margin-top: 8px; max-width: 120px; }
+
+  /* QUOTE CARDS */
+  .quotes { display: flex; flex-wrap: wrap; gap: 12px; }
+  .quote {
+    background: var(--bg);
+    border-left: 3px solid var(--gold);
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.85rem;
+    font-style: italic;
+    color: var(--text);
+    flex: 1 1 200px;
+  }
+
+  /* YES/NO BADGE */
+  .yesno-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #e8f5e9;
+    border: 1px solid var(--c5);
+    border-radius: 100px;
+    padding: 8px 18px;
+    font-weight: 600;
+    color: var(--c5);
+    font-size: 0.9rem;
+    margin-top: 8px;
+  }
+
+  /* SECTION DIVIDER */
+  .section-divider {
+    border: none;
+    border-top: 1px solid #e5e7eb;
+    margin: 28px 0;
+  }
+
+  @media (max-width: 600px) {
+    header { padding: 16px; }
+    header h1 { font-size: 1.1rem; }
+    .tab-panel { padding: 16px 12px; }
+    .kpi-card .value { font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eu-flag">🇪🇺</div>
+  <h1>Erasmus+ w Liceum w Dubience<br><span style="font-weight:400;font-size:1rem">Nowe Możliwości dla Uczniów i Nauczycieli</span></h1>
+  <div class="sub">nr projektu: 2025-1-PL01-KA122-SCH-000322073 &nbsp;·&nbsp; Wyniki ankiet ewaluacyjnych</div>
+</header>
+
+<nav class="tab-bar" role="tablist">
+  <button class="tab-btn active" data-tab="overview" role="tab">📊 Podsumowanie</button>
+  <button class="tab-btn" data-tab="rekrutacja" role="tab">Rekrutacja</button>
+  <button class="tab-btn" data-tab="zespol" role="tab">Praca zespołu</button>
+  <button class="tab-btn" data-tab="angielski" role="tab">Angielski 10h</button>
+  <button class="tab-btn" data-tab="wloski" role="tab">Włoski 4h</button>
+  <button class="tab-btn" data-tab="organizacyjne" role="tab">Org. 2h</button>
+  <button class="tab-btn" data-tab="kulturowe" role="tab">Kulturowe 2h</button>
+  <button class="tab-btn" data-tab="ewaluacja" role="tab">Po wyjeździe 🇮🇹</button>
+</nav>
+
+<div id="overview" class="tab-panel active"></div>
+<div id="rekrutacja" class="tab-panel"></div>
+<div id="zespol" class="tab-panel"></div>
+<div id="angielski" class="tab-panel"></div>
+<div id="wloski" class="tab-panel"></div>
+<div id="organizacyjne" class="tab-panel"></div>
+<div id="kulturowe" class="tab-panel"></div>
+<div id="ewaluacja" class="tab-panel"></div>
+
+<script>
+// ── TAB SWITCHING ──────────────────────────────────────────────────────────
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ── SHARED COLOURS ─────────────────────────────────────────────────────────
+const SCORE_COLORS = ['#d32f2f','#f57c00','#fbc02d','#689f38','#2e7d32'];
+const SCORE_LABELS = ['1 – niedostatecznie','2 – mało zad.','3 – dostatecznie','4 – dobrze','5 – bardzo dobrze'];
+
+// PLACEHOLDER FOR DATA + RENDER CALLS (Tasks 2–5)
+</script>
+</body>
+</html>
